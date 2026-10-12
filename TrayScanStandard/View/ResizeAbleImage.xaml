@@ -1,0 +1,67 @@
+﻿<UserControl x:Class="TrayScanStandard.View.ResizeAbleImage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:TrayScanStandard.View"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <Grid MouseWheel="Grid_MouseWheel" 
+          MouseRightButtonDown="Grid_MouseRightButtonDown"
+          MouseRightButtonUp="Grid_MouseRightButtonUp"
+          MouseMove="Grid_MouseMove" >
+
+        <Grid.LayoutTransform >
+            <ScaleTransform  x:Name="GTran" ScaleX="1" ScaleY="1"/>
+        </Grid.LayoutTransform>
+
+        <Border BorderBrush="{StaticResource SystemControlPageTextBaseHighBrush}"
+                BorderThickness="2"
+                ClipToBounds="True"
+                CornerRadius="0"
+                x:Name="BImage"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                RenderTransformOrigin="0.5, 0.5">
+
+         <Border.RenderTransform >
+             <RotateTransform Angle="0" />
+         </Border.RenderTransform>
+         <Grid x:Name="ImageGrid1">
+
+             <Image x:Name="img">
+                 <Image.LayoutTransform>
+                     <ScaleTransform />
+                 </Image.LayoutTransform>
+             </Image>
+
+             <!--ROI边框图层-->
+                <Canvas 
+                Width="{Binding ElementName=ImageGrid1, Path=ActualWidth}"
+                Height="{Binding ElementName=ImageGrid1, Path=ActualHeight}"
+                HorizontalAlignment="Center"
+                x:Name="borderCanvas"
+                VerticalAlignment="Center"
+                RenderTransformOrigin="0.5, 0.5">
+                    <!--<Canvas.RenderTransform >
+                        <RotateTransform Angle="90" />
+                    </Canvas.RenderTransform>-->
+                </Canvas>
+
+                <!--结果显示图层-->
+                <Canvas 
+                Width="{Binding ElementName=ImageGrid1, Path=ActualWidth}"
+                Height="{Binding ElementName=ImageGrid1, Path=ActualHeight}"
+                HorizontalAlignment="Center"
+                x:Name="ResultCanvas"
+                VerticalAlignment="Center"
+                RenderTransformOrigin="0.5, 0.5">
+                    <!--<Canvas.RenderTransform >
+                    <RotateTransform Angle="90" />
+                </Canvas.RenderTransform>-->
+                </Canvas>
+            </Grid>
+     </Border>
+ </Grid>
+</UserControl>
