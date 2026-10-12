@@ -1,4 +1,4 @@
-﻿global using LanguageExt;
+global using LanguageExt;
 global using static LanguageExt.Prelude;
 using LinxUniverse.Auth;
 using LinxUniverse.CST;
@@ -103,13 +103,14 @@ namespace TrayScanStandard
                                  trigger.ForJob(jobKey1).WithCronSchedule("0 10 * * * ?");
                              });
 
-                             JobKey heartbeatJobKey = JobKey.Create(nameof(HeartbeatJobs));
-                             config.AddJob<HeartbeatJobs>(heartbeatJobKey).AddTrigger(trigger =>
-                             {
-                                 trigger.ForJob(heartbeatJobKey)
-                                     .StartNow()
-                                     .WithSimpleSchedule(x => x.WithIntervalInSeconds(5).RepeatForever());
-                             });
+                             // 【已移除心跳】
+                             // JobKey heartbeatJobKey = JobKey.Create(nameof(HeartbeatJobs));
+                             // config.AddJob<HeartbeatJobs>(heartbeatJobKey).AddTrigger(trigger =>
+                             // {
+                             //     trigger.ForJob(heartbeatJobKey)
+                             //         .StartNow()
+                             //         .WithSimpleSchedule(x => x.WithIntervalInSeconds(5).RepeatForever());
+                             // });
 
                          });
 
@@ -145,9 +146,6 @@ namespace TrayScanStandard
                          
                          services.AddTransient<LightManagerView>();
                          services.AddTransient<LightManagerViewModel>();
-
-                         services.AddTransient<LightSourceControlView>();
-                         services.AddTransient<LightSourceControlViewModel>();
 
                          // 光源服务（Wordop 使用单例 + 启动自动连接）
                          services.AddSingleton<WordopLightService>();
@@ -214,7 +212,21 @@ namespace TrayScanStandard
                          // 原实现（保留）：
                          // webHostBuilder.UseUrls($"http://*:{MainViewModel.Saves.WcsHeartPort}");
                          // 新实现：程序内部WebHost使用独立端口，避免与WCS心跳Socket端口冲突导致“自连接在线”
-                         const int localApiPort = 18080;
+                         int localApiPort = 18080;
+                         // 双开支持: 如果默认端口已被占用，自动递增查找空闲端口
+                         try
+                         {
+                             var activeTcpListeners = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners();
+                             var usedPorts = new System.Collections.Generic.HashSet<int>(activeTcpListeners.Select(l => l.Port));
+                             while (usedPorts.Contains(localApiPort) && localApiPort < 18100)
+                             {
+                                 localApiPort++;
+                             }
+                         }
+                         catch
+                         {
+                             // 获取不到端口信息时保持默认值
+                         }
                          webHostBuilder.UseUrls($"http://*:{localApiPort}");
                          webHostBuilder.ConfigureKestrel((context, options) =>
                          {
@@ -280,14 +292,10 @@ namespace TrayScanStandard
             {
                 GetService<ScanCameraService>().Init();
                 logger.LogInformation("启动初始化：已触发相机自动连接");
-
-                var lightViewModel = GetService<LightSourceControlViewModel>();
-                lightViewModel.ConnectCommand.Execute(null);
-                logger.LogInformation("启动初始化：已触发光源自动连接");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "启动初始化：设备自动连接触发失败");
+                logger.LogError(ex, "启动初始化：相机自动连接触发失败");
             }
         }
         static ProcessManager manager;
